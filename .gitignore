@@ -6,3 +6,4 @@ data/raw/
 data/outputs/
 bi/dashboard_screenshots/
 .DS_Store
+*.save
