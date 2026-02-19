@@ -1,0 +1,149 @@
+# Customer Segmentation & Behavior Analytics Platform (End-to-End)
+
+An end-to-end **academic (M.S. Business Analytics)** project designed to showcase skills for **Data Analyst** and **Data Engineering** roles:
+- Data generation / ingestion (synthetic retail transactions)
+- Warehouse modeling (Postgres star schema)
+- SQL transformations (customer 360 + RFM)
+- Python analytics (RFM scoring + KMeans behavioral clustering + cohort retention)
+- Data quality checks
+- Orchestration (Airflow DAG example)
+- Visualizations (matplotlib outputs) + optional Power BI/Tableau
+
+> You can run locally with Docker (Postgres) or point to any Postgres-compatible warehouse.
+
+---
+
+## 1) Quickstart (Local)
+
+### Prereqs
+- Docker + Docker Compose
+- Python 3.10+
+
+### Start Postgres
+```bash
+docker compose up -d
+```
+
+### Create venv + install deps
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+### 1) Generate synthetic data (CSV)
+```bash
+python python/generate_data.py --out data/raw --days 365 --customers 5000 --seed 7
+```
+
+### 2) Load to Postgres (Bronze)
+```bash
+export DATABASE_URL="postgresql+psycopg2://app:app@localhost:5432/analytics"
+python python/load_to_postgres.py --data-dir data/raw
+```
+
+### 3) Build schema + marts (Silver/Gold)
+```bash
+python python/run_sql.py --dir sql
+```
+
+### 4) Run segmentation & analytics (Python)
+```bash
+python python/rfm_scoring.py
+python python/clustering_kmeans.py
+python python/cohorts.py
+python python/viz_report.py --out bi/dashboard_screenshots
+```
+
+Outputs:
+- `data/outputs/rfm_segments.csv`
+- `data/outputs/customer_clusters.csv`
+- `data/outputs/cohort_retention.csv`
+- `bi/dashboard_screenshots/*.png`
+
+---
+
+## 2) Project Structure
+
+```
+customer-segmentation-platform/
+  README.md
+  requirements.txt
+  docker-compose.yml
+  .env.example
+  .gitignore
+  data_dictionary.md
+  sql/
+    00_schema.sql
+    10_bronze_load_views.sql
+    20_silver_clean.sql
+    30_gold_customer_360.sql
+    40_gold_rfm.sql
+  python/
+    config.py
+    db.py
+    generate_data.py
+    load_to_postgres.py
+    run_sql.py
+    rfm_scoring.py
+    clustering_kmeans.py
+    cohorts.py
+    viz_report.py
+    dq_checks.py
+  pipelines/
+    airflow_dag_customer_segmentation.py
+  docs/
+    architecture.md
+  bi/
+    dashboard_screenshots/
+  data/
+    raw/
+    outputs/
+```
+
+---
+
+## 3) Data Model (Star Schema)
+
+**Dimensions**
+- `dim_customers`
+- `dim_products`
+- `dim_date`
+
+**Facts**
+- `fact_orders`
+- `fact_order_items`
+
+**Marts**
+- `mart_customer_metrics` (Customer 360)
+- `mart_rfm_base` + `mart_rfm_scored`
+- `mart_cohort_retention`
+
+---
+
+## 4) What This Demonstrates (Recruiter-friendly)
+
+- **SQL**: Window functions, aggregations, CTEs, star schema modeling, mart builds
+- **Python**: feature engineering, segmentation, clustering, cohort analysis, visualization
+- **Data Engineering**: ingestion, transformations, testing, orchestration patterns
+- **Analytics**: insights for targeted marketing, retention, personalization
+
+---
+
+## 5) Environment Variables
+
+Copy `.env.example` → `.env` and edit as needed.
+- `DATABASE_URL` (SQLAlchemy URL)
+
+Example:
+```
+DATABASE_URL=postgresql+psycopg2://app:app@localhost:5432/analytics
+```
+
+---
+
+## 6) Notes
+
+- This repo uses **synthetic data** (safe to publish on GitHub).
+- Replace Postgres with Snowflake/BigQuery/Redshift by adjusting connection + SQL dialect.
+
